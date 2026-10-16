@@ -1,5 +1,6 @@
 {
   "clientId": "PASTE_YOUR_DISCORD_APPLICATION_ID_HERE",
+  "title": "",
   "refreshSeconds": 15,
   "countCacheReads": true,
   "activityType": 0,

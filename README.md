@@ -36,6 +36,7 @@ To stop the hidden version, end the `node.exe` process in Task Manager.
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `clientId` | — | Your Discord Application ID (required) |
+| `title` | `""` | Custom name after "Playing" (defaults to your Discord app's name) |
 | `refreshSeconds` | `15` | Seconds between slides (minimum 15, Discord's rate limit) |
 | `countCacheReads` | `true` | Include cache-read tokens in totals. These are usually 95%+ of the total. Set to `false` for smaller, "real work" numbers |
 | `activityType` | `0` | 0 Playing, 2 Listening to, 3 Watching, 5 Competing in |

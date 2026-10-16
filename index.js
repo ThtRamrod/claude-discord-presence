@@ -10,6 +10,7 @@ const { DiscordIPC } = require('./discord-ipc');
 const CONFIG_PATH = path.join(__dirname, 'config.json');
 const DEFAULTS = {
   clientId: '',
+  title: '', // overrides the app name shown after "Playing"
   refreshSeconds: 15,
   countCacheReads: true,
   activityType: 0, // 0 Playing, 2 Listening, 3 Watching, 5 Competing
@@ -87,6 +88,7 @@ function buildActivity(config, slideIndex = 0) {
   const slide = all[slideIndex % all.length];
   const activity = {
     type: config.activityType,
+    ...(config.title && { name: config.title.slice(0, 128) }),
     details: slide.details.slice(0, 128),
     state: slide.state.slice(0, 128),
     instance: false,
