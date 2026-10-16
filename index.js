@@ -51,14 +51,6 @@ function bar(fraction, width = 10) {
   return '▰'.repeat(filled) + '▱'.repeat(width - filled);
 }
 
-// "claude-opus-5-5" -> "Opus 5.5"
-function prettyModel(id) {
-  if (!id) return 'Claude';
-  const m = id.match(/claude-([a-z]+)-(\d+)(?:-(\d+))?/i);
-  if (!m) return id;
-  return `${m[1][0].toUpperCase()}${m[1].slice(1)} ${m[2]}${m[3] && m[3].length <= 2 ? '.' + m[3] : ''}`;
-}
-
 function slides(u) {
   const pct = u.bestDay ? u.today.total / u.bestDay : 0;
   const avg = u.week.total / 7;
@@ -76,7 +68,7 @@ function slides(u) {
       state: `💬 ${u.allTime.requests.toLocaleString()} requests · ${u.sessions} sessions`,
     },
     {
-      details: `🧠 ${bold(prettyModel(u.lastModel))} ✦ ${fmt(u.today.output)} written today`,
+      details: `✦ ${fmt(u.today.output)} written today`,
       state: `🔥 ${u.streak} day streak · 👑 best day ${fmt(u.bestDay)}`,
     },
   ];
