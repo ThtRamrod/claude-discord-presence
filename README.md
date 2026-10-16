@@ -21,7 +21,7 @@ It reads Claude Code's local logs in `%USERPROFILE%\.claude\projects`. Nothing i
    Discord shows the name you pick after "Playing", so name it something like `Claude Code`.
 2. On the **General Information** page, copy the **Application ID**.
 3. Copy `config.example.json` to `config.json` and paste the ID into `clientId`.
-4. (Optional) Add the animated picture. Upload `assets/claude-spark.gif` somewhere public, then put its direct `https://...gif` link in `largeImage`. Images uploaded under **Rich Presence → Art Assets** also work, but they don't animate. To redraw the GIF, run `python assets/make_gif.py`.
+4. (Optional) Add the animated picture. Upload `assets/bot-fight.gif` (a pixel bot fighting off other bots) somewhere public, then put its direct `https://...gif` link in `largeImage`. Images uploaded under **Rich Presence → Art Assets** also work, but they don't animate. To redraw the GIF, run `python assets/make_gif.py`.
 
 ## Run
 
