@@ -27,6 +27,8 @@ It reads Claude Code's local logs in `%USERPROFILE%\.claude\projects`. Nothing i
 
 - `start.bat`: runs in a console window so you can see the log.
 - `start-hidden.vbs`: runs in the background with no window. To start it with Windows, put a shortcut to it in your Startup folder (`Win+R` → `shell:startup`).
+
+It only shows your status while the Claude desktop app's window is open. When you close the window, or it hides in the tray, the status clears within about 5 seconds. Only one copy runs at a time, so starting it twice is harmless.
 - `node index.js --print`: prints a full breakdown and exits, without connecting to Discord.
 
 To stop the hidden version, end the `node.exe` process in Task Manager.
@@ -36,6 +38,7 @@ To stop the hidden version, end the `node.exe` process in Task Manager.
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `clientId` | — | Your Discord Application ID (required) |
+| `onlyWhileOpen` | `"claude"` | Only show the status while this program has a window open. `""` = always show |
 | `title` | `""` | Custom name after "Playing" (defaults to your Discord app's name) |
 | `refreshSeconds` | `15` | Seconds between slides (minimum 15, Discord's rate limit) |
 | `countCacheReads` | `true` | Include cache-read tokens in totals. These are usually 95%+ of the total. Set to `false` for smaller, "real work" numbers |

@@ -4,12 +4,15 @@
 
 const fs = require('fs');
 const path = require('path');
+const net = require('net');
+const { execFile } = require('child_process');
 const { getUsage } = require('./usage');
 const { DiscordIPC } = require('./discord-ipc');
 
 const CONFIG_PATH = path.join(__dirname, 'config.json');
 const DEFAULTS = {
   clientId: '',
+  onlyWhileOpen: 'claude', // process name whose window must be open; '' = always show
   title: '', // overrides the app name shown after "Playing"
   refreshSeconds: 15,
   countCacheReads: true,
@@ -116,15 +119,42 @@ function printStats(config) {
   for (const s of slides(u)) console.log(`  ${s.details}\n  ${s.state}\n`);
 }
 
+// True when a process with this name has a window open (minimized counts, hidden in the tray doesn't).
+function windowOpen(processName) {
+  if (!processName) return Promise.resolve(true);
+  if (process.platform !== 'win32') return Promise.resolve(true);
+  const cmd = `@(Get-Process -Name '${processName.replace(/'/g, "''")}' -ErrorAction SilentlyContinue | Where-Object MainWindowHandle -ne 0).Count`;
+  return new Promise((resolve) => {
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', cmd], { windowsHide: true, timeout: 10000 },
+      (err, stdout) => resolve(!err && parseInt(stdout, 10) > 0));
+  });
+}
+
+// Only one copy may run, so the startup shortcut and a manual start don't fight over the status.
+function acquireSingleInstanceLock() {
+  const lockPath = process.platform === 'win32' ? '\\\\.\\pipe\\claude-discord-presence' : '/tmp/claude-discord-presence.sock';
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', () => resolve(false));
+    server.listen(lockPath, () => resolve(true));
+  });
+}
+
 async function run(config) {
   if (!config.clientId) {
     console.error('No clientId set. Copy config.example.json to config.json and paste your Discord Application ID.');
     process.exit(1);
   }
   const refreshMs = Math.max(15, config.refreshSeconds) * 1000; // Discord rate-limits presence updates
-  const startedAt = Date.now();
+  if (!(await acquireSingleInstanceLock())) {
+    console.log('Already running, exiting.');
+    process.exit(0);
+  }
+  let startedAt = Date.now();
   let client = null;
   let slideIndex = 0;
+  let open = false;
+  let slideTimer = null;
 
   async function ensureConnected() {
     if (client) return true;
@@ -146,6 +176,7 @@ async function run(config) {
   }
 
   async function tick() {
+    if (!open) return;
     if (!(await ensureConnected())) return;
     const { activity, count } = buildActivity(config, slideIndex);
     slideIndex = (slideIndex + 1) % count;
@@ -154,8 +185,26 @@ async function run(config) {
     console.log(`[${new Date().toLocaleTimeString()}] ${activity.details} | ${activity.state}`);
   }
 
-  await tick();
-  setInterval(() => tick().catch((e) => console.error(e)), refreshMs);
+  async function checkWindow() {
+    const nowOpen = await windowOpen(config.onlyWhileOpen);
+    if (nowOpen === open) return;
+    open = nowOpen;
+    if (open) {
+      console.log(`[${new Date().toLocaleTimeString()}] ${config.onlyWhileOpen || 'App'} opened, showing status.`);
+      startedAt = Date.now();
+      slideIndex = 0;
+      clearInterval(slideTimer); // full slide length for the first slide
+      slideTimer = setInterval(() => tick().catch((e) => console.error(e)), refreshMs);
+      await tick();
+    } else {
+      console.log(`[${new Date().toLocaleTimeString()}] ${config.onlyWhileOpen} closed, clearing status.`);
+      if (client) client.close(); // closing the connection clears the activity
+      client = null;
+    }
+  }
+
+  await checkWindow();
+  setInterval(() => checkWindow().catch((e) => console.error(e)), 5000);
 
   const shutdown = () => {
     if (client) client.close();
