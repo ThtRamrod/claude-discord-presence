@@ -1,3 +1,6 @@
 config.json
 node_modules/
 __pycache__/
+
+# graphify knowledge graph (rebuilt locally by git hooks)
+graphify-out/
